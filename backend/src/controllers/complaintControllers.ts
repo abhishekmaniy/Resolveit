@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import Complaint from "../models/Complaint";
+import User from "../models/User";
 
 
 export const createComplaint = async (req: Request, res: Response) => {
@@ -94,10 +95,40 @@ export const updatePriority = async (req: Request, res: Response) => {
 
 export const getComplaints = async (req: Request, res: Response) => {
     try {
-        const complaints = await Complaint.find()
-        res.status(200).json(complaints);
+        console.log(req.user)
+        if (req.user.role === "User") {
+
+            const Complains = await Complaint.find({ userId: req.user.id })
+            console.log(Complains)
+            res.status(200).json(Complains);
+
+        } else {
+            const Complains = await Complaint.find()
+            res.status(200).json(Complains);
+        }
     } catch (error) {
         console.error('Error fetching complaints:', error);
         res.status(500).json({ message: 'Server error while fetching complaints.' });
     }
 };
+
+export const deleteComplaint = async (req: Request, res: Response) => {
+    try {
+        if (req.user.role === "Admin") {
+            const { complaintId } = req.params;
+
+            const deletedComplaint = await Complaint.findByIdAndDelete(complaintId);
+
+            return res.status(200).json({
+                message: 'Complaint deleted successfully.',
+                complaint: deletedComplaint
+            });
+        } else {
+            return res.status(403).json({ message: 'Forbidden: Only admins can delete complaints.' });
+        }
+
+    } catch (error) {
+        console.error('Error fetching complaints:', error);
+        res.status(500).json({ message: 'Server error while Deleting complaints.' });
+    }
+}

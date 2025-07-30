@@ -83,7 +83,7 @@ export const verifyUser = async (req: Request, res: Response) => {
         }
 
         console.log(token);
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+        const decoded = jwt.verify(token, JWT_SECRET);
         const userId = typeof decoded === 'object' && 'userId' in decoded ? (decoded as any).userId : null;
         if (!userId) {
             return res.status(401).json({ message: 'Invalid token payload' });

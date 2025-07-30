@@ -8,6 +8,7 @@ import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGrou
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useComplaintStore } from '@/store/useComplaintStore';
 import { Complaint, ComplaintFilters as FilterType } from '@/types/types';
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
@@ -15,14 +16,12 @@ import { AlertTriangle, BarChart3, CheckCircle2, Clock } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 interface AdminDashboardProps {
-  complaints: Complaint[];
-  onStatusUpdate: (id: string, status: Complaint['status']) => void;
   onDelete: (id: string) => void;
 }
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
-export function AdminDashboard({ complaints, onStatusUpdate, onDelete }: AdminDashboardProps) {
+export function AdminDashboard({ onDelete, }: AdminDashboardProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [selectedPriority, setSelectedPriority] = useState<Complaint['priority'] | 'all'>('all');
@@ -31,7 +30,34 @@ export function AdminDashboard({ complaints, onStatusUpdate, onDelete }: AdminDa
   const [filters, setFilters] = useState<FilterType>({});
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [updatingPriority, setUpdatingPriority] = useState<string | null>(null);
+  const { updateComplaint, removeComplaint, complaints } = useComplaintStore()
+  const [deletingComplaint, setDeletingComplaint] = useState<string | null>(null);
 
+  const handleDeleteComplaint = async (id: string) => {
+    setDeletingComplaint(id);
+    try {
+      await axios.delete(`${BACKEND_URL}/complaint/${id}`, { withCredentials: true });
+
+      // Remove the complaint from the store
+      removeComplaint(id);
+
+      toast({
+        title: "Complaint Deleted",
+        description: "The complaint has been successfully deleted.",
+      });
+
+      // Close the modal after deletion
+      setIsDetailsOpen(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete the complaint. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingComplaint(null);
+    }
+  };
 
   const stats = useMemo(() => {
     const total = complaints.length;
@@ -73,7 +99,13 @@ export function AdminDashboard({ complaints, onStatusUpdate, onDelete }: AdminDa
 
     try {
       const response = await axios.put(`${BACKEND_URL}/complaint/${id}/status`, { status: newStatus }, { withCredentials: true });
-      onStatusUpdate(id, newStatus);
+
+      // Update the complaint in the store
+      updateComplaint({
+        ...selectedComplaint,
+        status: newStatus,
+        dateUpdated: new Date(),
+      });
 
       toast({
         title: "Status Updated",
@@ -84,7 +116,7 @@ export function AdminDashboard({ complaints, onStatusUpdate, onDelete }: AdminDa
         setSelectedComplaint({
           ...selectedComplaint,
           status: newStatus,
-          dateUpdated: new Date()
+          dateUpdated: new Date(),
         });
       }
     } catch (error) {
@@ -105,6 +137,13 @@ export function AdminDashboard({ complaints, onStatusUpdate, onDelete }: AdminDa
         withCredentials: true
       });
 
+      // Update the complaint in the store
+      updateComplaint({
+        ...selectedComplaint,
+        priority,
+        dateUpdated: new Date(),
+      });
+
       toast({
         title: "Priority Updated",
         description: response.data.message || `Priority changed to "${priority}".`,
@@ -114,7 +153,7 @@ export function AdminDashboard({ complaints, onStatusUpdate, onDelete }: AdminDa
         setSelectedComplaint({
           ...selectedComplaint,
           priority,
-          dateUpdated: new Date()
+          dateUpdated: new Date(),
         });
       }
     } catch (error: any) {
@@ -421,6 +460,17 @@ export function AdminDashboard({ complaints, onStatusUpdate, onDelete }: AdminDa
                     <p className="leading-relaxed">{selectedComplaint.description}</p>
                   </div>
                 </div>
+              </div>
+
+              {/* Footer with Delete Button */}
+              <div className="flex justify-end mt-6">
+                <Button
+                  variant="destructive"
+                  onClick={() => handleDeleteComplaint(selectedComplaint._id)}
+                  disabled={deletingComplaint === selectedComplaint._id}
+                >
+                  {deletingComplaint === selectedComplaint._id ? "Deleting..." : "Delete Complaint"}
+                </Button>
               </div>
             </>
           )}

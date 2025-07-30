@@ -1,15 +1,15 @@
 import { useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { HomePage } from './HomePage';
 import { AdminDashboard } from './AdminDashboard';
 import { UserDashboard } from './UserDashboard';
 import { ComplaintFormData } from '@/types/types';
-import { useAuth } from '@/contexts/AuthContext';
-import { UserRole } from '@/types/types';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { useComplaintStore } from '@/store/useComplaintStore';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
+import { UserRole } from '@/types/types';
 
 
 
@@ -24,7 +24,7 @@ const Index = () => {
     removeComplaint,
   } = useComplaintStore();
   const { toast } = useToast();
-
+  const navigate = useNavigate();
 
   const { isAuthenticated, user } = useAuth();
 
@@ -34,6 +34,14 @@ const Index = () => {
         .get(`${BACKEND_URL}/complaint`, { withCredentials: true })
         .then((res) => setComplaints(res.data))
         .catch((err) => console.error('Error loading complaints', err));
+      navigate('/admin');
+    }
+    if (user?.role === 'User') {
+      axios
+        .get(`${BACKEND_URL}/complaint`, { withCredentials: true })
+        .then((res) => setComplaints(res.data))
+        .catch((err) => console.error('Error loading user complaints', err));
+      navigate('/user');
     }
   }, [user, setComplaints]);
 
@@ -59,30 +67,15 @@ const Index = () => {
       })
 
     }
-    const response = await axios.post(`${BACKEND_URL}/complaints/new`, data, {
-      withCredentials: true,
-    });
 
 
-    addComplaint(response.data);
+
   };
 
-  const handleStatusUpdate = async (_id: string, status: string) => {
-    const response = await axios.put(
-      `${BACKEND_URL}/complaints/${_id}/status`,
-      { status },
-      { withCredentials: true }
-    );
-
-    updateComplaint({
-      ...response.data,
-      status,
-      dateUpdated: new Date(),
-    });
-  };
+ 
 
   const handleDeleteComplaint = async (_id: string) => {
-    await axios.delete(`${BACKEND_URL}/complaints/${_id}`, {
+    await axios.delete(`${BACKEND_URL}/complaint/${_id}`, {
       withCredentials: true,
     });
 
@@ -97,6 +90,10 @@ const Index = () => {
     children: React.ReactNode;
     requiredRole?: UserRole;
   }) => {
+
+    console.log(isAuthenticated, user)
+    console.log("requiredRole", requiredRole, "user role", user.role)
+
     if (!isAuthenticated) return <Navigate to="/" replace />;
     if (requiredRole && user?.role !== requiredRole)
       return <Navigate to="/" replace />;
@@ -105,32 +102,32 @@ const Index = () => {
 
   return (
     <Layout>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route
-          path="/user"
-          element={
-            <ProtectedRoute requiredRole="User">
-              <UserDashboard
-                complaints={complaints}
-                onSubmitComplaint={handleSubmitComplaint}
-              />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute requiredRole="Admin">
-              <AdminDashboard
-                complaints={complaints}
-                onStatusUpdate={handleStatusUpdate}
-                onDelete={handleDeleteComplaint}
-              />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route
+            path="/user"
+            element={
+              <ProtectedRoute requiredRole="User">
+                <UserDashboard
+                  complaints={complaints}
+                  onSubmitComplaint={handleSubmitComplaint}
+                />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requiredRole="Admin">
+                <AdminDashboard
+                  onDelete={handleDeleteComplaint}
+                />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </AuthProvider>
     </Layout>
   );
 };

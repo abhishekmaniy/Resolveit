@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useUserStore } from '@/store/useUserStore';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LogIn, UserPlus } from 'lucide-react';
 import { useState } from 'react';
@@ -36,6 +37,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
   const { login, register } = useAuth();
+  const {user} = useUserStore()
   const { toast } = useToast();
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
@@ -65,8 +67,20 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
           title: "Login Successful",
           description: "Welcome back! Redirecting you now...",
         });
+
         onSuccess();
         onClose();
+
+        if (typeof window !== "undefined") {
+          const role = user.role
+          if (role === "Admin") {
+            window.location.href = "/admin";
+          } else if (role === "User") {
+            window.location.href = "/user";
+          } else {
+            window.location.href = "/";
+          }
+        }
       } else {
         toast({
           title: "Login Failed",
@@ -84,6 +98,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
       setIsLoading(false);
     }
   };
+
 
   const handleRegister = async (values: z.infer<typeof registerSchema>) => {
     setIsLoading(true);

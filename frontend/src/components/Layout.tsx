@@ -16,8 +16,8 @@ export function Layout({ children }: LayoutProps) {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
 
-  console.log(user)
   const handleAuthSuccess = () => {
+    console.log(user.role)
     if (user?.role === 'Admin') {
       navigate('/admin');
     } else {

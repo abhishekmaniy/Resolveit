@@ -3,6 +3,7 @@ import { useUserStore } from '@/store/useUserStore';
 import { User } from '@/types/types';
 import axios from 'axios';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   user: User | null;
@@ -40,7 +41,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         });
         setUser(res.data.user);
       } catch (err) {
-        setUser(null); 
+        setUser(null);
       } finally {
         setLoading(false);
       }

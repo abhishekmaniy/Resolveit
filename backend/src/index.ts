@@ -13,7 +13,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: 'http://localhost:8080',
+  origin: ['http://localhost:8080' , 'https://resolveit-coral.vercel.app/'],
   credentials: true,
 }));
 

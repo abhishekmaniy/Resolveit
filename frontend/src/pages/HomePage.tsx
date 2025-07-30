@@ -7,6 +7,7 @@ import { MessageCircle, Shield, Clock, CheckCircle, ArrowRight, Sparkles, Star, 
 import { AuthModal } from '@/components/AuthModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
+import { UserRole } from '@/types/types';
 
 export function HomePage() {
 
@@ -15,7 +16,7 @@ export function HomePage() {
   const navigate = useNavigate();
 
   const handleAuthSuccess = () => {
-    if (user?.role === 'Admin') {
+    if (user?.role === 'Admin' ) {
       navigate('/admin');
     } else {
       navigate('/user');
