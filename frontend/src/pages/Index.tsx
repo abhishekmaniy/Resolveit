@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { Layout } from '@/components/Layout';
+import { Layout } from '@/components/common/Layout';
 import { HomePage } from './HomePage';
 import { AdminDashboard } from './AdminDashboard';
 import { UserDashboard } from './UserDashboard';

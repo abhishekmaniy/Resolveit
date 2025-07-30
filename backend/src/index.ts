@@ -10,12 +10,14 @@ dotenv.config();
 
 const app = express();
 
-app.use(express.json());
-app.use(cookieParser());
 app.use(cors({
-  origin: ['http://localhost:8080' , 'https://resolveit-coral.vercel.app/'],
+  origin: ['http://localhost:8080', 'https://resolveit-coral.vercel.app'],
   credentials: true,
 }));
+
+app.use(express.json());
+app.use(cookieParser());
+
 
 app.use('/user', userRoutes);
 app.use('/complaint', complaintRoutes);

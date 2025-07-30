@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import { BarChart3, TrendingUp, Clock, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ComplaintFilters } from '@/components/ComplaintFilters';
-import { ComplaintTable } from '@/components/ComplaintTable';
-import { ComplaintDetails } from '@/components/ComplaintDetails';
+import { ComplaintFilters } from '@/components/ComplaintComp/ComplaintFilters';
+import { ComplaintTable } from '@/components/ComplaintComp/ComplaintTable';
+import { ComplaintDetails } from '@/components/ComplaintComp/ComplaintDetails';
 import { Complaint, ComplaintFilters as FilterType } from '@/types/complaint';
 
 interface AdminPageProps {

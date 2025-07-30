@@ -1,22 +1,20 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AuthModal } from '@/components/common/AuthModal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Shield, Clock, CheckCircle, ArrowRight, Sparkles, Star, AlertTriangle, Flame, Leaf } from 'lucide-react';
-import { AuthModal } from '@/components/AuthModal';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
+import { motion } from 'framer-motion';
+import { AlertTriangle, ArrowRight, Clock, Flame, Leaf, MessageCircle, Shield, Sparkles, Star } from 'lucide-react';
 import { useState } from 'react';
-import { UserRole } from '@/types/types';
+import { useNavigate } from 'react-router-dom';
 
 export function HomePage() {
-
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleAuthSuccess = () => {
-    if (user?.role === 'Admin' ) {
+    if (user?.role === 'Admin') {
       navigate('/admin');
     } else {
       navigate('/user');
@@ -104,23 +102,7 @@ export function HomePage() {
 
         {/* Feature Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl z-10">
-          {[
-            {
-              icon: <MessageCircle className="h-8 w-8 text-primary mx-auto mb-2" />,
-              title: 'Easy Submission',
-              description: 'Simple and intuitive form to submit your complaints with all necessary details.',
-            },
-            {
-              icon: <Shield className="h-8 w-8 text-primary mx-auto mb-2" />,
-              title: 'Secure & Private',
-              description: 'Your complaints are handled with complete confidentiality and security.',
-            },
-            {
-              icon: <Clock className="h-8 w-8 text-primary mx-auto mb-2" />,
-              title: 'Quick Response',
-              description: 'We aim to acknowledge and respond to all complaints within 24 hours.',
-            },
-          ].map(({ icon, title, description }, index) => (
+          {["Easy Submission", "Secure & Private", "Quick Response"].map((title, index) => (
             <motion.div
               key={index}
               className="text-center hover:shadow-xl hover:scale-105 transition-all duration-300 dark:bg-gray-800 dark:text-white"
@@ -131,12 +113,16 @@ export function HomePage() {
             >
               <Card>
                 <CardHeader>
-                  {icon}
+                  {[<MessageCircle />, <Shield />, <Clock />][index]}
                   <CardTitle className="text-lg">{title}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="dark:text-gray-300">
-                    {description}
+                    {[
+                      "Simple and intuitive form to submit your complaints with all necessary details.",
+                      "Your complaints are handled with complete confidentiality and security.",
+                      "We aim to acknowledge and respond to all complaints within 24 hours."
+                    ][index]}
                   </CardDescription>
                 </CardContent>
               </Card>
@@ -153,7 +139,6 @@ export function HomePage() {
         transition={{ duration: 0.8 }}
         viewport={{ once: true }}
       >
-        {/* Decorative Icons */}
         <Leaf className="absolute top-8 left-10 text-green-100 dark:text-green-900 w-14 h-14 animate-pulse opacity-30 dark:opacity-20" />
         <Sparkles className="absolute bottom-10 left-20 text-yellow-100 dark:text-yellow-900 w-16 h-16 animate-spin-slow opacity-20 dark:opacity-10" />
 
@@ -166,23 +151,7 @@ export function HomePage() {
           </CardHeader>
 
           <CardContent className="space-y-6 mt-4">
-            {[
-              {
-                icon: <Leaf className="text-success mt-1" />,
-                badge: <Badge variant="secondary" className="text-success">Low</Badge>,
-                description: "General inquiries, suggestions, or minor issues that don't affect functionality.",
-              },
-              {
-                icon: <AlertTriangle className="text-warning mt-1" />,
-                badge: <Badge variant="default" className="text-warning">Medium</Badge>,
-                description: 'Issues that affect functionality but have workarounds available.',
-              },
-              {
-                icon: <Flame className="text-destructive mt-1" />,
-                badge: <Badge variant="destructive">High</Badge>,
-                description: 'Critical issues that severely impact functionality or cause service disruption.',
-              },
-            ].map(({ icon, badge, description }, index) => (
+            {[Leaf, AlertTriangle, Flame].map((Icon, index) => (
               <motion.div
                 key={index}
                 className="flex items-start gap-4"
@@ -191,11 +160,17 @@ export function HomePage() {
                 transition={{ duration: 0.6, delay: index * 0.2 }}
                 viewport={{ once: true }}
               >
-                {icon}
+                <Icon className={["text-success", "text-warning", "text-destructive"][index]} />
                 <div>
-                  {badge}
+                  <Badge variant={["secondary", "default", "destructive"][index] as "secondary" | "default" | "destructive"} className={["text-success", "text-warning", ""][index]}>
+                    {["Low", "Medium", "High"][index]}
+                  </Badge>
                   <p className="text-sm mt-1 text-muted-foreground dark:text-gray-300">
-                    {description}
+                    {[
+                      "General inquiries, suggestions, or minor issues that don't affect functionality.",
+                      "Issues that affect functionality but have workarounds available.",
+                      "Critical issues that severely impact functionality or cause service disruption."
+                    ][index]}
                   </p>
                 </div>
               </motion.div>
@@ -203,6 +178,7 @@ export function HomePage() {
           </CardContent>
         </Card>
       </motion.section>
+
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}

@@ -1,4 +1,4 @@
-import LoadingScreen from '@/components/LoadingScreen';
+import LoadingScreen from '@/components/common/LoadingScreen';
 import { useUserStore } from '@/store/useUserStore';
 import { User } from '@/types/types';
 import axios from 'axios';
