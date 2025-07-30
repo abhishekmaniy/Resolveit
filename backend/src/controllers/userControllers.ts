@@ -3,9 +3,13 @@ import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import Complaint from '../models/Complaint.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'yoursecretkey';
 const COOKIE_NAME = 'token';
+const FRONTEND_URL = process.env.FRONTEND_URL
 
 // Register new user
 export const registerUser = async (req: Request, res: Response) => {
@@ -82,7 +86,7 @@ export const verifyUser = async (req: Request, res: Response) => {
             return res.status(401).json({ message: 'Unauthorized: No token provided' });
         }
 
-        console.log(token);
+        console.log(JWT_SECRET);
         const decoded = jwt.verify(token, JWT_SECRET);
         const userId = typeof decoded === 'object' && 'userId' in decoded ? (decoded as any).userId : null;
         if (!userId) {
@@ -109,4 +113,51 @@ export const verifyUser = async (req: Request, res: Response) => {
 export const logoutUser = (req: Request, res: Response) => {
     res.clearCookie(COOKIE_NAME);
     res.status(200).json({ message: 'Logged out successfully' });
+};
+
+
+export const confirmUpdate = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.query;
+    if (!token || typeof token !== 'string') {
+      return res.status(400).send('Invalid token.');
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+      complaintId: string;
+      action: 'update_status' | 'update_priority';
+      newValue: string;
+    };
+
+    const complaint = await Complaint.findById(decoded.complaintId);
+    if (!complaint) return res.status(404).send('Complaint not found.');
+
+    if (decoded.action === 'update_status') {
+      const allowedStatuses = ['Pending', 'In Progress', 'Resolved'] as const;
+      if (!allowedStatuses.includes(decoded.newValue as any)) {
+        return res.status(400).send('Invalid status value.');
+      }
+      complaint.status = decoded.newValue as typeof allowedStatuses[number];
+    } else if (decoded.action === 'update_priority') {
+      const allowedPriorities = ['Low', 'Medium', 'High'] as const;
+      if (!allowedPriorities.includes(decoded.newValue as any)) {
+        return res.status(400).send('Invalid priority value.');
+      }
+      complaint.priority = decoded.newValue as typeof allowedPriorities[number];
+    }
+
+    complaint.dateUpdated = new Date();
+    await complaint.save();
+
+    res.send(`
+      <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+        <h1>Update Confirmed ✅</h1>
+        <p>The ${decoded.action === 'update_status' ? 'status' : 'priority'} has been updated successfully.</p>
+        <a href=${FRONTEND_URL} style="color: blue; text-decoration: underline;">Go back to dashboard</a>
+      </div>
+    `);
+  } catch (err) {
+    console.error('Error confirming update:', err);
+    return res.status(400).send('Invalid or expired token.');
+  }
 };

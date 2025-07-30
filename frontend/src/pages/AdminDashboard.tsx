@@ -100,12 +100,7 @@ export function AdminDashboard({ onDelete, }: AdminDashboardProps) {
     try {
       const response = await axios.put(`${BACKEND_URL}/complaint/${id}/status`, { status: newStatus }, { withCredentials: true });
 
-      // Update the complaint in the store
-      updateComplaint({
-        ...selectedComplaint,
-        status: newStatus,
-        dateUpdated: new Date(),
-      });
+
 
       toast({
         title: "Status Updated",
@@ -135,13 +130,6 @@ export function AdminDashboard({ onDelete, }: AdminDashboardProps) {
     try {
       const response = await axios.put(`${BACKEND_URL}/complaint/${id}/priority`, { priority }, {
         withCredentials: true
-      });
-
-      // Update the complaint in the store
-      updateComplaint({
-        ...selectedComplaint,
-        priority,
-        dateUpdated: new Date(),
       });
 
       toast({
